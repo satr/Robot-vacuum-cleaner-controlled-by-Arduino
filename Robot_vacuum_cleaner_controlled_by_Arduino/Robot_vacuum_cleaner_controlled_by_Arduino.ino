@@ -1,90 +1,141 @@
+/*
+Program for controlling a robot with two motors.
+The robot turns when motors changes their speed and direction.
+Front bumpers on left and right sides detect obstacles.
+LED is turned on when any of bumpers are pressed.
+When porgram starts it waits while one of bumpers is pressed and than runs motors forward.
+*/
 
-const int ledPin = 13;
-const int dirRPin = 2;
-const int motorRPin = 3;
-const int bumperRPin = 7;
-const int dirLPin = 4;
-const int motorLPin = 5;
-const int bumperLPin = 8;
+const int pinLED = 13;
+//right side
+const int pinRightMotorDirection = 2;
+const int pinRightMotorSpeed = 3;
+const int pinRightBumper = 7;
+//left side
+const int pinLeftMotorDirection = 4;
+const int pinLeftMotorSpeed = 5;
+const int pinLeftBumper = 8;
 
+//fields
 const int turnTimeout = 100;
-
 boolean led;
-int movedToRCount, movedToLCount;
+//set in counter how long a motor is running back: N/10 (in milliseconds)
+int countDownWhileMovingToRight;
+int countDownWhileMovingToLeft;
 
+//Initialization
 void setup() {
-  pinMode(ledPin, OUTPUT);
-  pinMode(dirRPin, OUTPUT);
-  pinMode(motorRPin, OUTPUT);
-  pinMode(bumperRPin, INPUT);
-  pinMode(dirLPin, OUTPUT);
-  pinMode(motorLPin, OUTPUT);
-  pinMode(bumperLPin, INPUT);
+
+  initPins();
   
-  runRForward();
+  waitWhileAnyBumperIsPressed();
+
+  runRightMotorForward();
+  runLeftMotorForward();
 }
 
+//Main loop
 void loop() {
-  verifyAndSetRSide();
-  verifyAndSetLSide();
-
-  processRSide();
-  processRSide();
-
-  digitalWrite(ledPin, (movedToRCount > 0 || movedToLCount > 0));
   
-  delay(10);
+  verifyAndSetRightSide();
+  verifyAndSetLeftSide();
+
+  processRightSide();
+  processLeftSide();
+
+  turnOnLEDIfAnySideRunsBackward();
+  
+  delay(10);//repeat every 10 milliseconds
 }
 
-void processRSide(){
-  if(movedToRCount <= 0)
+//---------------------------------------------------
+void initPins(){
+  pinMode(pinLED, OUTPUT);
+  pinMode(pinRightMotorDirection, OUTPUT);
+  pinMode(pinRightMotorSpeed, OUTPUT);
+  pinMode(pinRightBumper, INPUT);
+  pinMode(pinLeftMotorDirection, OUTPUT);
+  pinMode(pinLeftMotorSpeed, OUTPUT);
+  pinMode(pinLeftBumper, INPUT);
+}
+
+void waitWhileAnyBumperIsPressed(){
+  while(checkBumperIsNotPressed(pinRightBumper)
+        && checkBumperIsNotPressed(pinLeftBumper)){
+    delay(20);//check every 20 milliseconds
+  }
+}
+ 
+void processRightSide(){
+  if(countDownWhileMovingToRight <= 0)
     return;
-  movedToRCount--;
-  if(movedToRCount <= 0)
-    runRForward();
+  countDownWhileMovingToRight--;
+  if(countDownWhileMovingToRight <= 0)
+    runRightMotorForward();
 }
   
-void processLSide(){
-  if(movedToLCount <= 0)
+void processLeftSide(){
+  if(countDownWhileMovingToLeft <= 0)
     return;
-  movedToLCount--;
-  if(movedToLCount <= 0)
-    runLForward();
+  countDownWhileMovingToLeft--;
+  if(countDownWhileMovingToLeft <= 0)
+    runLeftMotorForward();
 }
   
-void verifyAndSetRSide(){
-  if(digitalRead(bumperRPin))
+void verifyAndSetRightSide(){
+  if(checkBumperIsNotPressed(pinRightBumper))
     return;
-  if(movedToRCount <= 0)
-    runRBackward();
-  movedToRCount = turnTimeout;
+  if(checkCounterIsNotSet(countDownWhileMovingToRight))
+    runRightMotorBackward();
+  countDownWhileMovingToRight = turnTimeout;
 }
 
-void verifyAndSetLSide(){
-  if(digitalRead(bumperLPin))
+void verifyAndSetLeftSide(){
+  if(checkBumperIsNotPressed(pinLeftBumper))
     return;
-  if(movedToLCount <= 0)
-    runLBackward();
-  movedToLCount = turnTimeout;
+  if(checkCounterIsNotSet(countDownWhileMovingToLeft))
+    runLeftMotorBackward();
+  countDownWhileMovingToLeft = turnTimeout;
 }
 
-void runRBackward(){
-  digitalWrite(dirRPin, false);
-  analogWrite(motorRPin, 255);
+bool checkCounterIsNotSet(int counter){
+  return counter <= 0;
 }
 
-void runLBackward(){
-  digitalWrite(dirLPin, false);
-  analogWrite(motorLPin, 255);
+bool checkBumperIsNotPressed(int pinBumper){
+  return digitalRead(pinBumper);
 }
 
-void runRForward(){
-  digitalWrite(dirRPin, true);
-  analogWrite(motorRPin, 0);
+void runRightMotorForward(){
+  runMotorForward(pinRightMotorDirection, pinRightMotorSpeed);
 }
 
-void runLForward(){
-  digitalWrite(dirLPin, true);
-  analogWrite(motorLPin, 0);
+void runLeftMotorForward(){
+  runMotorForward(pinLeftMotorDirection, pinLeftMotorSpeed);
 }
 
+void runRightMotorBackward(){
+  runMotorBackward(pinRightMotorDirection, pinRightMotorSpeed);
+}
+
+void runLeftMotorBackward(){
+  runMotorBackward(pinLeftMotorDirection, pinLeftMotorSpeed);
+}
+
+void runMotorForward(int pinMotorDirection, int pinMotorSpeed){
+  digitalWrite(pinMotorDirection, true); //set direction forward 
+  analogWrite(pinMotorSpeed, 0); //set max speed forward (127 is for stop)
+}
+
+void runMotorBackward(int pinMotorDirection, int pinMotorSpeed){
+  digitalWrite(pinMotorDirection, false); //set direction backward 
+  analogWrite(pinMotorSpeed, 255); //set max speed backward (127 is for stop)
+}
+
+void turnOnLEDIfAnySideRunsBackward(){
+  digitalWrite(pinLED, oneOrBothMotorsAreRunninsBack());
+}
+
+bool oneOrBothMotorsAreRunninsBack(){
+  return (countDownWhileMovingToRight > 0 || countDownWhileMovingToLeft > 0);
+}

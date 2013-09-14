@@ -2,10 +2,10 @@
 const int ledPin = 13;
 const int dirRPin = 2;
 const int motorRPin = 3;
-const int bamperRPin = 7;
+const int bumperRPin = 7;
 const int dirLPin = 4;
 const int motorLPin = 5;
-const int bamperLPin = 8;
+const int bumperLPin = 8;
 
 const int turnTimeout = 100;
 
@@ -16,27 +16,27 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   pinMode(dirRPin, OUTPUT);
   pinMode(motorRPin, OUTPUT);
-  pinMode(bamperRPin, INPUT);
+  pinMode(bumperRPin, INPUT);
   pinMode(dirLPin, OUTPUT);
   pinMode(motorLPin, OUTPUT);
-  pinMode(bamperLPin, INPUT);
+  pinMode(bumperLPin, INPUT);
   
   runRForward();
 }
 
 void loop() {
-  VerifyAndSetRSide();
-  VerifyAndSetLSide();
+  verifyAndSetRSide();
+  verifyAndSetLSide();
 
-  ProcessRSide();
-  ProcessLSide();
+  processRSide();
+  processRSide();
 
   digitalWrite(ledPin, (movedToRCount > 0 || movedToLCount > 0));
   
   delay(10);
 }
 
-void ProcessRSide(){
+void processRSide(){
   if(movedToRCount <= 0)
     return;
   movedToRCount--;
@@ -44,7 +44,7 @@ void ProcessRSide(){
     runRForward();
 }
   
-void ProcessLSide(){
+void processLSide(){
   if(movedToLCount <= 0)
     return;
   movedToLCount--;
@@ -52,16 +52,16 @@ void ProcessLSide(){
     runLForward();
 }
   
-void VerifyAndSetRSide(){
-  if(digitalRead(bamperRPin))
+void verifyAndSetRSide(){
+  if(digitalRead(bumperRPin))
     return;
   if(movedToRCount <= 0)
     runRBackward();
   movedToRCount = turnTimeout;
 }
 
-void VerifyAndSetLSide(){
-  if(digitalRead(bamperLPin))
+void verifyAndSetLSide(){
+  if(digitalRead(bumperLPin))
     return;
   if(movedToLCount <= 0)
     runLBackward();

@@ -67,11 +67,12 @@ void waitWhileAnyBumperIsPressed(){
 }
  
 void processRightSide(){
-  if(countDownWhileMovingToRight <= 0)
+  if(countDownWhileMovingToRight <= 0)//checks if counter was NOT ran when bumper had been pressed
     return;
-  countDownWhileMovingToRight--;
-  if(countDownWhileMovingToRight <= 0)
-    runRightMotorForward();
+  //otherwise - counter is counting downd (as a delay) while the right motor is moving backward 
+  countDownWhileMovingToRight--;//decrease the counter if it WAS ran when bumper had been pressed
+  if(countDownWhileMovingToRight <= 0)//if the running counter got down to zero
+    runRightMotorForward();//run the right motor forward
 }
   
 void processLeftSide(){
@@ -83,11 +84,11 @@ void processLeftSide(){
 }
   
 void verifyAndSetRightSide(){
-  if(checkBumperIsNotPressed(pinRightBumper))
+  if(checkBumperIsNotPressed(pinRightBumper))//checks if right bumper has NOT been pressed
     return;
-  if(checkCounterIsNotSet(countDownWhileMovingToRight))
-    runRightMotorBackward();
-  countDownWhileMovingToRight = turnTimeout;
+  if(checkCounterIsNotSet(countDownWhileMovingToRight))//if the counter is not yet counting down
+    runRightMotorBackward();//run the right motor backward
+  countDownWhileMovingToRight = turnTimeout;//set the counter to maximum value to start it counting down
 }
 
 void verifyAndSetLeftSide(){
